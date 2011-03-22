@@ -1,0 +1,17 @@
+One example for thousand words. This one will list unfiltered hostids, 
+limited only by access level for API user. So, remember to add user to 
+appropriate groups and assign enought permissions.
+
+use lib "./lib/";
+use Net::Zabbix;
+
+my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", 1);
+my $r = $z->get("host", {
+		output => "extended",
+		filter => undef,
+	}
+);
+
+Consult Zabbix API documentation for details.
+- http://www.zabbix.com/wiki/doc/api 
+- http://www.zabbix.com/documentation/1.8/api
