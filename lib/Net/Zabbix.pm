@@ -3,77 +3,125 @@ package Net::Zabbix;
 use strict;
 use JSON::XS;
 use LWP::UserAgent;
+use Data::Dumper;
 
 sub new {
-    my ($class, $url, $user, $password) = @_;
+	my ($class, $url, $user, $password, $debug) = @_;
 
-    my $ua = LWP::UserAgent->new;
-    $ua->agent("Net::Zabbix");
+	my $ua = LWP::UserAgent->new;
+	$ua->agent("Net::Zabbix");
 
-    my $req = HTTP::Request->new(POST => "$url/api_jsonrpc.php");
-    $req->content_type('application/json-rpc');
+	my $req = HTTP::Request->new(POST => "$url/api_jsonrpc.php");
+	$req->content_type('application/json-rpc');
 
-    $req->content(encode_json( {
-        jsonrpc => "2.0",
-        method => "user.authenticate",
-        params => {
-            user => $user,
-            password => $password,
-        },
-        id => 1,
-    }));
+	my $self = bless {
+		UserAgent => $ua,
+		Request   => $req,
+		Count     => 1,
+		Auth      => undef,
+		Debug     => $debug ? 1 : 0,
+	}, $class;
 
-    my $res = $ua->request($req);
+	$req->content($self->data_enc({
+		jsonrpc => "2.0",
+		method => "user.authenticate",
+		params => {
+		user => $user,
+		password => $password,
+		},
+		id => 1,
+	}));
 
-    unless ($res->is_success) {
-      die "Can't connect to Zabbix" . $res->status_line;
-    }
+	my $res = $ua->request($req);
 
-    my $auth = decode_json($res->content)->{'result'};
+	unless ($res->is_success) {
+		die "Can't connect to Zabbix" . $res->status_line;
+	}
 
-    return bless {
-        UserAgent => $ua,
-        Request   => $req,
-        Count     => 1,
-        Auth      => $auth,
-    }, $class;
+	my $auth = $self->data_dec($res->content)->{'result'};
+	$self->{Auth} = $auth;
+
+	return $self;
 }
 
 sub ua {
-    return shift->{'UserAgent'};
+	return shift->{'UserAgent'};
+}
+
+sub debug {
+	return shift->{'Debug'};
 }
 
 sub req {
-    return shift->{'Request'};
+	return shift->{'Request'};
 }
 
 sub auth {
-    return shift->{'Auth'};
+	return shift->{'Auth'};
 }
 
 sub next_id {
-    return ++shift->{'Count'};
+	return ++shift->{'Count'};
+}
+
+sub data_enc {
+	my ($self, $data) = @_;
+	my $json = encode_json($data);
+	warn Dumper($json) if $self->{Debug};
+	return $json;
+}
+
+sub data_dec {
+	my ($self, $json) = @_;
+	warn Dumper($json) if $self->{Debug};
+	my $data = decode_json($json);
+	return $data;
 }
 
 sub get {
-    my ($self, $object, $params) = @_;
+	my ($self, $object, $params) = @_;
+	return $self->raw_request($object, "get", $params);
+}
 
-    my $req = $self->req;
-    $req->content(encode_json( {
-        jsonrpc => "2.0",
-        method => "$object.get",
-        params => $params,
-        auth => $self->auth,
-        id => $self->next_id,
-    }));
+sub update {
+	my ($self, $object, $params) = @_;
+	return $self->raw_request($object, "update", $params);
+}
 
-    my $res = $self->ua->request($req);
+sub delete {
+	my ($self, $object, $params) = @_;
+	return $self->raw_request($object, "delete", $params);
+}
 
-    unless ($res->is_success) {
-      die "Can't connect to Zabbix" . $res->status_line;
-    }
+sub create {
+	my ($self, $object, $params) = @_;
+	return $self->raw_request($object, "create", $params);
+}
 
-    return decode_json($res->content);
+sub exists {
+	my ($self, $object, $params) = @_;
+	return $self->raw_request($object, "exists", $params);
+}
+
+sub raw_request {
+	my ($self, $object, $op, $params) = @_;
+
+	my $req = $self->req;
+	$req->content($self->data_enc( {
+		jsonrpc => "2.0",
+		method => "$object.$op",
+		params => $params,
+		auth => $self->auth,
+		id => $self->next_id,
+	}));
+
+	my $res = $self->ua->request($req);
+
+	unless ($res->is_success) {
+		die "Can't connect to Zabbix" . $res->status_line;
+	}
+
+	return $self->data_dec($res->content);
 }
 
 1;
