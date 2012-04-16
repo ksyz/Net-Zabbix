@@ -8,11 +8,11 @@ my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", 1);
 # no need to specify at each call
 $z->output("extended"); 
 my $r = $z->get("host", {
-		filter => undef,
+        filter => undef,
         search => {
             host => "test",
         },
-	}
+    }
 );
 
 Consult Zabbix API documentation for details.
