@@ -1,12 +1,22 @@
-Small example. This one will list hosts like '*test*', limited only by 
-access level for API user. So, remember to add user to appropriate groups 
-and assign enought permissions.
+Net::Zabbix is simple and thin layer between Zabbix API and your code. It 
+doesn't implement much, except authentication and request counting. There 
+are few helper methods to simplify calling methods such as 
+create/get/update/delete/exists.
+
+Note:
+
+Module (seems to be) is fully compatible with Zabbix 2.0 and 1.8. But your 
+code may not.
+
+Example: 
+
+This will list hosts like '*test*', limited only by access level for API 
+user. So, remember to add user to appropriate groups and assign enough 
+permissions.
 
 use Net::Zabbix;
 
 my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", 1);
-# no need to specify at each call
-$z->output("extended"); 
 my $r = $z->get("host", {
         filter => undef,
         search => {
@@ -18,3 +28,4 @@ my $r = $z->get("host", {
 Consult Zabbix API documentation for details.
 - http://www.zabbix.com/wiki/doc/api 
 - http://www.zabbix.com/documentation/1.8/api
+- http://www.zabbix.com/documentation/2.0/manual/appendix/api/api
