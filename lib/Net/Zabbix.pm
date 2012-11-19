@@ -3,6 +3,7 @@ package Net::Zabbix;
 use strict;
 use JSON::XS;
 use LWP::UserAgent;
+use Scalar::Util qw(reftype);
 # useful defaults
 use constant {
 	Z_AGENT_PORT => 10050,
@@ -203,9 +204,14 @@ sub exists {
 
 sub raw_request {
 	my ($self, $object, $op, $params) = @_;
-	
-	$params->{output} = $self->{Output}
-		unless $params->{output};
+
+	if ($params) {
+		$params->{output} = $self->{Output}
+			if (reftype($params) eq 'HASH' and not defined $params->{output});
+	}
+	else {
+		$params = [];
+	}
 
 	my $req = $self->req;
 	$req->content($self->data_enc( {
