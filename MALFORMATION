@@ -1,0 +1,29 @@
+           INFORMATIONS, MALFORMATIONS AND CONFUSIONS IN ZABBIX API
+
+This are things I came across while using Zabbix API, that may be documented 
+not as clear as could, or wrong, or not at all.
+
+ * host.delete()
+
+This is is supposed to take list of host ids. 2.0 documentation suggests 
+passing an array of ids. It will throw at you an "Wrong fields for host %s" 
+exception. 
+
+	"params": [
+		"13",
+		"32"
+	],
+
+But 1.8 docs shows different example:
+
+	"params": [
+		{ "hostid": "107824" },
+		{ "hostid": "107825" }
+	],
+
+And this one is correct. But, so is this one:
+
+	"params": {
+		"hostid": "100100000010158",
+	},
+
