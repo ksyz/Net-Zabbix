@@ -1,7 +1,7 @@
 package Net::Zabbix;
 
 use strict;
-use JSON::XS;
+use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
 # useful defaults
@@ -100,6 +100,14 @@ use constant {
 sub new {
 	my ($class, $url, $user, $password, $debug) = @_;
 
+	my $json = JSON::PP->new;
+	$json
+		->ascii
+		->pretty
+		->allow_nonref
+		->allow_blessed
+		->allow_bignum;
+
 	my $ua = LWP::UserAgent->new;
 	$ua->agent("Net::Zabbix");
 
@@ -114,6 +122,8 @@ sub new {
 		Output		=> OUTPUT_EXTEND,
 		Debug     => $debug ? 1 : 0,
 	}, $class;
+	
+	$self->{JSON} = $json;
 
 	$req->content($self->data_enc({
 		jsonrpc => "2.0",
@@ -165,15 +175,23 @@ sub next_id {
 
 sub data_enc {
 	my ($self, $data) = @_;
-	my $json = encode_json($data);
-	warn "TX: ".$json if $self->{Debug};
+	
+	my $json = $self->{JSON}->encode($data);
+	
+	warn "TX: ".$json 
+		if $self->{Debug};
+	
 	return $json;
 }
 
 sub data_dec {
 	my ($self, $json) = @_;
-	warn "RX: ".$json if $self->{Debug};
-	my $data = decode_json($json);
+	
+	warn "RX: ".$json 
+		if $self->{Debug};
+	
+	my $data = $self->{JSON}->decode($json);
+	
 	return $data;
 }
 
