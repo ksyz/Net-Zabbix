@@ -3,6 +3,11 @@ package Net::Zabbix;
 use strict;
 use JSON::XS;
 use LWP::UserAgent;
+# useful defaults
+use constant {
+	Z_AGENT_PORT => 10050,
+	Z_SERVER_PORT => 10051,
+};
 
 # zabbix api constants definitions
 use constant {
