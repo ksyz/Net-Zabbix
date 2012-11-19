@@ -143,30 +143,46 @@ sub new {
 	my $auth = $self->data_dec($res->content)->{'result'};
 	$self->{Auth} = $auth;
 
-	$JSON::Pretty = 1
-		if $self->{Debug};
-
 	return $self;
 }
 
 sub output {
-	return shift->{'Output'};
+	my $self = shift;
+	
+	$self->{Output} = $_[0]
+		if (@_);
+	
+	return $self->{Output};
 }
 
 sub ua {
 	return shift->{'UserAgent'};
 }
 
-sub debug {
-	return shift->{'Debug'};
+sub debug {	
+	my $self = shift;
+	
+	$self->{Debug} = $_[0]
+		if (@_);
+	
+	return $self->{Debug};
 }
 
 sub req {
-	return shift->{'Request'};
+	return shift->{Request};
 }
 
 sub auth {
-	return shift->{'Auth'};
+	return shift->{Auth};
+}
+
+sub serializer {
+	my $self = shift;
+	
+	$self->{JSON} = $_[0]
+		if (@_);
+	
+	return $self->{JSON};
 }
 
 sub next_id {
