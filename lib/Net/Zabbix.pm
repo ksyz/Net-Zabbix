@@ -4,6 +4,8 @@ use strict;
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
+use Carp;
+
 # useful defaults
 use constant {
 	Z_AGENT_PORT => 10050,
@@ -137,7 +139,7 @@ sub new {
 
 	my $res = $ua->request($req);
 
-	die "Can't connect to Zabbix: " . $res->status_line 
+	confess "Can't connect to Zabbix: " . $res->status_line 
 		unless ($res->is_success);
 
 	my $auth = $self->data_dec($res->content)->{'result'};
