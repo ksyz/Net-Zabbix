@@ -99,6 +99,33 @@ use constant {
 	TRIGGER_FLAG_UNCERTAIN => 1,
 };
 
+# http://www.zabbix.com/documentation/2.0/manual/appendix/api/user/definitions
+use constant {
+	USER_TYPE_USER => 1,
+	USER_TYPE_ADMIN => 2,
+	USER_TYPE_SUPERADMIN => 3,
+	USER_TYPE_ROOT => 3, # same as Super Admin
+
+	# default supported theme names
+	USER_THEME_1 => 'originalblue', 
+	USER_THEME_2 => 'darkblue',
+	USER_THEME_3 => 'darkorange',
+
+};
+
+# http://www.zabbix.com/documentation/2.0/manual/appendix/api/usergroup/definitions
+use constant {
+	GROUP_ACCESS_DEFAULT => 0,
+	GROUP_ACCESS_INTERNAL => 1,
+	GROUP_ACCESS_DISABLED => 2,
+	
+	GROUP_STATUS_ENABLED => 0,
+	GROUP_STATUS_DISABLED => 1,
+
+	GROUP_DEBUG_ENABLED => 1,
+	GROUP_DEBUG_DISABLED => 0,
+};
+
 sub new {
 	my ($class, $url, $user, $password, $debug) = @_;
 
