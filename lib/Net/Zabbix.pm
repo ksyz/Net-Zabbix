@@ -111,6 +111,8 @@ use constant {
 	USER_THEME_2 => 'darkblue',
 	USER_THEME_3 => 'darkorange',
 
+	# 0 seconds means disabled
+	USER_AUTOLOGIN_DISABLE => 0,
 };
 
 # http://www.zabbix.com/documentation/2.0/manual/appendix/api/usergroup/definitions
