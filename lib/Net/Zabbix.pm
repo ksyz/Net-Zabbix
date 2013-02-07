@@ -1,6 +1,7 @@
 package Net::Zabbix;
 
 use strict;
+use warnings;
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
@@ -10,6 +11,7 @@ use Carp;
 use constant {
 	Z_AGENT_PORT => 10050,
 	Z_SERVER_PORT => 10051,
+	Z_SNMP_PORT => 161,
 };
 
 # zabbix api constants definitions
@@ -45,7 +47,7 @@ use constant {
 	ITEM_TYPE_SNMP2 => 4,
 	ITEM_TYPE_INTERN => 5,
 	ITEM_TYPE_SNMP3 => 6,
-	ITEM_TYPE_AAGENT => 7,
+	ITEM_TYPE_AAGENT => 7, # zabbix agent (active)
 	ITEM_TYPE_AGGR => 8,
 	ITEM_TYPE_HTTP => 9,
 	ITEM_TYPE_EXTERN => 10,
