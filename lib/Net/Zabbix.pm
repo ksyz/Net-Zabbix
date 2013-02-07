@@ -6,6 +6,8 @@ use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
 use Carp;
+use Time::HiRes qw(gettimeofday tv_interval);
+use POSIX qw(strftime);
 
 # useful defaults
 use constant {
@@ -141,7 +143,7 @@ use constant {
 };
 
 sub new {
-	my ($class, $url, $user, $password, $debug) = @_;
+	my ($class, $url, $user, $password, $debug, $trace) = @_;
 
 	my $json = JSON::PP->new;
 	$json
@@ -163,8 +165,10 @@ sub new {
 		Request   => $req,
 		Count     => 1,
 		Auth      => undef,
-		Output		=> OUTPUT_EXTEND,
+		Output    => OUTPUT_EXTEND,
 		Debug     => $debug ? 1 : 0,
+		Trace     => $trace ? 1 : 0,
+		_call_start => 0,
 	}, $class;
 	
 	$self->{JSON} = $json;
@@ -203,6 +207,16 @@ sub ua {
 	return shift->{'UserAgent'};
 }
 
+sub trace {	
+	my $self = shift;
+	
+	$self->{Trace} = $_[0]
+		if (@_);
+	
+	return $self->{Trace};
+}
+
+
 sub debug {	
 	my $self = shift;
 	
@@ -220,15 +234,6 @@ sub auth {
 	return shift->{Auth};
 }
 
-sub serializer {
-	my $self = shift;
-	
-	$self->{JSON} = $_[0]
-		if (@_);
-	
-	return $self->{JSON};
-}
-
 sub next_id {
 	return ++shift->{'Count'};
 }
@@ -238,7 +243,7 @@ sub data_enc {
 	
 	my $json = $self->{JSON}->encode($data);
 	
-	warn "TX: ".$json 
+	$self->_dbgmsg("TX: ".$json) 
 		if $self->{Debug};
 	
 	return $json;
@@ -247,12 +252,10 @@ sub data_enc {
 sub data_dec {
 	my ($self, $json) = @_;
 	
-	warn "RX: ".$json 
+	$self->_dbgmsg("RX: ".$json) 
 		if $self->{Debug};
-	
-	my $data = $self->{JSON}->decode($json);
-	
-	return $data;
+
+	return $self->{JSON}->decode($json);
 }
 
 sub get {
@@ -283,6 +286,11 @@ sub exists {
 sub raw_request {
 	my ($self, $object, $op, $params) = @_;
 
+	if ($self->{Trace}) {
+		$self->{_call_start} = [gettimeofday];
+		$self->_dbgmsg("Starting method $object.$op");
+	}
+	
 	if ($params) {
 		$params->{output} = $self->{Output}
 			if (reftype($params) eq 'HASH' and not defined $params->{output});
@@ -306,7 +314,17 @@ sub raw_request {
 		die "Can't connect to Zabbix" . $res->status_line;
 	}
 
+	if ($self->{Trace}) {
+		$self->_dbgmsg("Finished method $object.$op");
+		$self->_dbgmsg("Spent ".tv_interval ($self->{_call_start})."s on $object.$op");
+	}
+
 	return $self->data_dec($res->content);
+}
+
+sub _dbgmsg {
+	my $self = shift;
+	warn strftime('[%F %T]', localtime).' '.__PACKAGE__.' @ #'.$self->{Count}.' '.join(', ', @_)."\n";
 }
 
 1;
