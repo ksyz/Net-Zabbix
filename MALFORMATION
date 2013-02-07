@@ -27,3 +27,37 @@ And this one is correct. But, so is this one:
 		"hostid": "100100000010158",
 	},
 
+ * host.get()
+
+Selecting interfaces with extended format results in different structure then 
+host groups. Result is hash of interfaceid => interface object mapping, not an 
+array of interfaces.
+
+	'interfaces' => {
+		'100100000000314' => {
+			'dns' => 'some.random.host.lan',
+			'ip' => '10.13.37.0',
+			'hostid' => '100100000010401',
+			'port' => '10050',
+			'main' => '1',
+			'useip' => '1',
+			'type' => '1',
+			'interfaceid' => '100100000000314'
+		}
+	},
+
+One would expect same structure as groups (and other 1:n mapping objects), 
+
+	'interfaces' => [
+		{
+			'dns' => 'some.random.host.lan',
+			'ip' => '10.13.37.0',
+			'interfaceid' => '100100000000314'
+			...
+		},
+	],
+	
+ * hostinterface.create()
+
+There are several mandatory fields: hostid, ip, dns, useip, port, main. If you 
+are adding first interface of some type, it must be set to primary.
