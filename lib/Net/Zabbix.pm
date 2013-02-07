@@ -151,6 +151,7 @@ sub new {
 
 	my $ua = LWP::UserAgent->new;
 	$ua->agent("Net::Zabbix");
+	$ua->timeout(3600);
 
 	my $req = HTTP::Request->new(POST => "$url/api_jsonrpc.php");
 	$req->content_type('application/json-rpc');
