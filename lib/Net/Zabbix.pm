@@ -24,7 +24,6 @@ use constant {
 };
 
 use constant {
-
 	HOST_INTERFACE_SECONDARY => 0,
 	HOST_INTERFACE_PRIMARY => 1,
 
@@ -111,6 +110,9 @@ use constant {
 
 	TRIGGER_FLAG_GOOD => 0,
 	TRIGGER_FLAG_UNCERTAIN => 1,
+	
+	TRIGGER_STATUS_ICMPPING_FAIL => 0,
+	TRIGGER_STATUS_ICMPPING_SUCCESS => 1,
 };
 
 # http://www.zabbix.com/documentation/2.0/manual/appendix/api/user/definitions
