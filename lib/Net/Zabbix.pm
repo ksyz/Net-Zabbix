@@ -145,53 +145,28 @@ use constant {
 };
 
 sub new {
-	my ($class, $url, $user, $password, $debug, $trace) = @_;
-
-	my $json = JSON::PP->new;
-	$json
-		->ascii
-		->pretty
-		->allow_nonref
-		->allow_blessed
-		->allow_bignum;
-
-	my $ua = LWP::UserAgent->new;
-	$ua->agent("Net::Zabbix");
-	$ua->timeout(3600);
-
-	my $req = HTTP::Request->new(POST => "$url/api_jsonrpc.php");
-	$req->content_type('application/json-rpc');
+	my ($class, $url, $user, $password, $debug, $trace, $config_file) = @_;
 
 	my $self = bless {
-		UserAgent => $ua,
-		Request   => $req,
+		UserAgent => undef,
+		Request   => undef,
 		Count     => 1,
 		Auth      => undef,
+		API_URL   => $url,
 		Output    => OUTPUT_EXTEND,
 		Debug     => $debug ? 1 : 0,
 		Trace     => $trace ? 1 : 0,
+		User      => $user,
+		Password  => $password,
 		_call_start => 0,
 	}, $class;
 	
-	$self->{JSON} = $json;
-
-	$req->content($self->data_enc({
-		jsonrpc => "2.0",
-		method => "user.authenticate",
-		params => {
-			user => $user,
-			password => $password,
-		},
-		id => 1,
-	}));
-
-	my $res = $ua->request($req);
-
-	confess "Can't connect to Zabbix: " . $res->status_line 
-		unless ($res->is_success);
-
-	my $auth = $self->data_dec($res->content)->{'result'};
-	$self->{Auth} = $auth;
+	# init json object
+	$self->_json;
+	# init useragent
+	$self->ua;
+	# authenticate
+	$self->auth;
 
 	return $self;
 }
@@ -206,10 +181,33 @@ sub output {
 }
 
 sub ua {
-	return shift->{'UserAgent'};
+	my $self = shift;
+
+	unless ($self->{UserAgent}) {
+		$self->{UserAgent} = LWP::UserAgent->new;
+		$self->{UserAgent}->agent("Net::Zabbix");
+		$self->{UserAgent}->timeout(3600);
+	}
+	
+	return $self->{UserAgent};
 }
 
-sub trace {	
+sub _json {
+	my $self = shift;
+
+	unless (defined $self->{JSON}) {
+		$self->{JSON} = JSON::PP->new;
+		$self->{JSON}
+			->ascii
+			->pretty
+			->allow_nonref
+			->allow_blessed
+			->allow_bignum; # we use PP because of bignum
+	}
+	return $self->{JSON};
+}
+
+sub trace {
 	my $self = shift;
 	
 	$self->{Trace} = $_[0]
@@ -229,11 +227,37 @@ sub debug {
 }
 
 sub req {
-	return shift->{Request};
+	my $self = shift;
+	
+	unless ($self->{Request}) {
+		$self->{Request} = HTTP::Request->new(POST => "$self->{API_URL}/api_jsonrpc.php");
+		$self->{Request}->content_type('application/json-rpc');
+	}
+
+	return $self->{Request};
 }
 
 sub auth {
-	return shift->{Auth};
+	my $self = shift;
+
+	if (not defined $self->{Auth}) {
+		$self->{Auth} = ''; # avoiding recursion
+		my $res = $self->raw_request('user', 'authenticate', {
+			user => $self->{User},
+			password => $self->{Password},
+		});
+
+		confess $res->{error}{data}
+			if defined $res->{error};
+		delete $self->{Password};
+		$self->{Auth} = $res->{result};
+	}
+	elsif ($self->{Auth} eq '') {
+		return (); # empty for first auth call
+	}
+	
+	return $self->{Auth} unless defined wantarray;
+	return (auth => $self->{Auth});
 }
 
 sub next_id {
@@ -242,7 +266,6 @@ sub next_id {
 
 sub data_enc {
 	my ($self, $data) = @_;
-	
 	my $json = $self->{JSON}->encode($data);
 	
 	$self->_dbgmsg("TX: ".$json) 
@@ -306,8 +329,8 @@ sub raw_request {
 		jsonrpc => "2.0",
 		method => "$object.$op",
 		params => $params,
-		auth => $self->auth,
 		id => $self->next_id,
+		($self->auth),
 	}));
 
 	my $res = $self->ua->request($req);
