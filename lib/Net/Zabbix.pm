@@ -269,23 +269,13 @@ sub auth {
 
 	if (not defined $self->{Auth}) {
 		$self->{Auth} = ''; # avoiding recursion
-		my $res;
-		# TODO: use apiinfo.version
-		# https://www.zabbix.com/documentation/1.8/api/apiinfo/version
-		# login for >= zabbix 2.2
-		# authenticate < 2.2 
-		for (qw(authenticate login)) {
-			$res = $self->raw_request('user', $_, {
-				user => $self->{User},
-				password => $self->{Password},
-			});
-
-			last 
-				unless $res->{error};
-		}
+		my $res = $self->raw_request('user', 'login', {
+			user => $self->{User},
+			password => $self->{Password},
+		});
 		confess $res->{error}{data}
 			if defined $res->{error};
-		delete $self->{Password};
+		$self->{Password} = '***';
 		$self->{Auth} = $res->{result};
 	}
 	elsif ($self->{Auth} eq '') {
