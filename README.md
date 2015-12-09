@@ -12,7 +12,7 @@ Consult Zabbix API documentation for details.
 
 ### Note
 
-Module is fully compatible with Zabbix 2.0 and 1.8.
+Module is fully compatible with Zabbix 2.0 and 1.8. For >2.2 check v2 branch.
 
 ### Example
 
@@ -23,7 +23,8 @@ permissions.
 ```perl
 use Net::Zabbix;
 
-my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", 1);
+my ($debug, $trace, $verify_ssl) = (1, 0, 0);
+my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", $debug, $trace, $verify_ssl);
 my $r = $z->get("host", {
         filter => undef,
         search => {

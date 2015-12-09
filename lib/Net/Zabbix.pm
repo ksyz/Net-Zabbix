@@ -2,7 +2,7 @@ package Net::Zabbix;
 
 use strict;
 use warnings;
-use vars '$VERSION'; $VERSION = '1.00';
+use vars '$VERSION'; $VERSION = '1.01';
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
@@ -146,7 +146,7 @@ use constant {
 };
 
 sub new {
-	my ($class, $url, $user, $password, $debug, $trace, $config_file) = @_;
+	my ($class, $url, $user, $password, $debug, $trace, $config_file, $verify_ssl) = @_;
 
 	my $self = bless {
 		UserAgent => undef,
@@ -159,6 +159,8 @@ sub new {
 		Trace     => $trace ? 1 : 0,
 		User      => $user,
 		Password  => $password,
+		# verify by default
+		VerifySSL => ((defined $verify_ssl && !$verify_ssl) ? 0 : 1),
 		_call_start => 0,
 	}, $class;
 	
@@ -185,9 +187,16 @@ sub ua {
 	my $self = shift;
 
 	unless ($self->{UserAgent}) {
+		unless ($self->{VerifySSL}) {
+			$ENV{PERL_NET_HTTPS_SSL_SOCKET_CLASS} = "Net::SSL";
+			$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME} = 0;
+		}
+
 		$self->{UserAgent} = LWP::UserAgent->new;
 		$self->{UserAgent}->agent("Net::Zabbix");
 		$self->{UserAgent}->timeout(3600);
+		$self->{UserAgent}->ssl_opts(verify_hostnames => 0)
+			unless $self->{VerifySSL};
 	}
 	
 	return $self->{UserAgent};
