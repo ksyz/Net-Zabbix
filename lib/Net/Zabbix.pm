@@ -2,6 +2,7 @@ package Net::Zabbix;
 
 use strict;
 use warnings;
+use vars '$VERSION'; $VERSION = '1.00';
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype);
