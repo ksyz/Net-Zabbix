@@ -6,9 +6,9 @@ as that is work for-and already implemented on server side.
 
 Consult Zabbix API documentation for details.
 
-- http://www.zabbix.com/wiki/doc/api
-- http://www.zabbix.com/documentation/1.8/api
-- http://www.zabbix.com/documentation/2.0/manual/appendix/api/api
+- [Zabbix API Wiki](http://www.zabbix.com/wiki/doc/api)
+- [Zabbix 1.8 API](http://www.zabbix.com/documentation/1.8/api)
+- [Zabbix 2.0 API](http://www.zabbix.com/documentation/2.0/manual/appendix/api/api)
 
 ### Note
 
@@ -23,8 +23,15 @@ permissions.
 ```perl
 use Net::Zabbix;
 
-my ($debug, $trace, $verify_ssl) = (1, 0, 0);
-my $z = Net::Zabbix->new("http://server/zabbix", "API", "calvin", $debug, $trace, $verify_ssl);
+my $z = Net::Zabbix->new(
+	url => "https://server/zabbix/", 
+	username => 'APIUser', 
+	password => 'calvin',
+	verify_ssl => 0,
+	debug => 1,
+	trace => 0,
+);
+
 my $r = $z->get("host", {
         filter => undef,
         search => {

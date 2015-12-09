@@ -5,7 +5,7 @@ use warnings;
 use vars '$VERSION'; $VERSION = '1.01';
 use JSON::PP;
 use LWP::UserAgent;
-use Scalar::Util qw(reftype);
+use Scalar::Util qw(reftype refaddr);
 use Carp;
 use Time::HiRes qw(gettimeofday tv_interval);
 use POSIX qw(strftime);
@@ -146,21 +146,38 @@ use constant {
 };
 
 sub new {
-	my ($class, $url, $user, $password, $debug, $trace, $config_file, $verify_ssl) = @_;
+	my $class = shift;
+	my $required = 1;
+	my $args = {
+		url => \$required,
+		trace => 0,
+		debug => 0,
+		verify_ssl => 1,
+		username => \$required,
+		password => \$required,
+		@_,
+	};
+	
+	for my $k (keys %$args) {
+		if (ref $args->{$k} && refaddr($args->{$k}) == refaddr(\$required)) {
+			die "Missing value for $k";
+		}
+	};
 
+	$args->{url} =~ s,/+$,,g;
+	
 	my $self = bless {
 		UserAgent => undef,
 		Request   => undef,
 		Count     => 1,
 		Auth      => undef,
-		API_URL   => $url,
+		API_URL   => $args->{url},
 		Output    => OUTPUT_EXTEND,
-		Debug     => $debug ? 1 : 0,
-		Trace     => $trace ? 1 : 0,
-		User      => $user,
-		Password  => $password,
-		# verify by default
-		VerifySSL => ((defined $verify_ssl && !$verify_ssl) ? 0 : 1),
+		Debug     => $args->{debug} ? 1 : 0,
+		Trace     => $args->{trace} ? 1 : 0,
+		User      => $args->{username},
+		Password  => $args->{password},
+		VerifySSL => $args->{verify_ssl},
 		_call_start => 0,
 	}, $class;
 	
@@ -172,7 +189,7 @@ sub new {
 	$self->auth;
 
 	return $self;
-}
+};
 
 sub output {
 	my $self = shift;
@@ -344,7 +361,6 @@ sub raw_request {
 	}));
 
 	my $res = $self->ua->request($req);
-
 	unless ($res->is_success) {
 		die "Can't connect to Zabbix" . $res->status_line;
 	}
