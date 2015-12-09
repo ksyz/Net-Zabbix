@@ -9,10 +9,12 @@ Consult Zabbix API documentation for details.
 - [Zabbix API Wiki](http://www.zabbix.com/wiki/doc/api)
 - [Zabbix 1.8 API](http://www.zabbix.com/documentation/1.8/api)
 - [Zabbix 2.0 API](http://www.zabbix.com/documentation/2.0/manual/appendix/api/api)
+- [Zabbix 2.2 API](https://www.zabbix.com/documentation/2.2/manual/api/reference)
 
 ### Note
 
-Module is fully compatible with Zabbix 2.0 and 1.8. For >2.2 check v2 branch.
+Module is compatible and tested with Zabbix 1.8, 2.0 and 2.2. But shuld 
+work with any version.
 
 ### Example
 
