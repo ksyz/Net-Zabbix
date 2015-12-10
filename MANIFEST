@@ -1,0 +1,6 @@
+Makefile.PL
+MANIFEST
+lib/Net/Zabbix.pm
+NOTES
+contrib/perl-Net-Zabbix.spec
+contrib/example.pl

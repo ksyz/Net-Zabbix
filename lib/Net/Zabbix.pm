@@ -2,7 +2,7 @@ package Net::Zabbix;
 
 use strict;
 use warnings;
-use vars '$VERSION'; $VERSION = '2.00';
+use version; our $VERSION = qv(2.00);
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype refaddr);
