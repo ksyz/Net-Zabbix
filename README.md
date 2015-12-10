@@ -43,6 +43,9 @@ my $r = $z->get("host", {
 );
 
 ```
+### Package
+
+RPM package for Enterprise Linux 7 (comaptible with Fedora, just force it) could be found in [COPR](https://copr.fedoraproject.org/coprs/ksyz/el7-perl) repository.
 
 ### License
 
