@@ -1,16 +1,17 @@
 #!/usr/bin/perl
-#
+# this script will list hosts.
 
 use strict;
 use warnings;
-
-use lib "lib";
-
-use Net::Zabbix;
 use Data::Dumper;
 
+use FindBin qw($RealBin);
+use lib "$RealBin/../lib";
+
+use Net::Zabbix;
+
 my $z = Net::Zabbix->new(
-	url =>"https://mon.in.o2bs.sk/zabbix/", 
+	url =>"https://noc.ninja/zabbix/", 
 	username => 'APIUser', 
 	password => 'calvin',
 	verify_ssl => 0,
