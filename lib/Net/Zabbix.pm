@@ -2,7 +2,7 @@ package Net::Zabbix;
 
 use strict;
 use warnings;
-use version; our $VERSION = qv(2.00);
+use version; our $VERSION = qv(2.01);
 use JSON::PP;
 use LWP::UserAgent;
 use Scalar::Util qw(reftype refaddr);
@@ -165,7 +165,7 @@ sub new {
 	};
 
 	$args->{url} =~ s,/+$,,g;
-	
+
 	my $self = bless {
 		UserAgent => undef,
 		Request   => undef,
@@ -273,16 +273,15 @@ sub auth {
 			user => $self->{User},
 			password => $self->{Password},
 		});
-		confess $res->{error}{data}
-			if defined $res->{error};
 		$self->{Password} = '***';
-		$self->{Auth} = $res->{result};
+		$self->{Auth} = $res;
 	}
 	elsif ($self->{Auth} eq '') {
 		return (); # empty for first auth call
 	}
 	
-	return $self->{Auth} unless defined wantarray;
+	return $self->{Auth} 
+		unless defined wantarray;
 	return (auth => $self->{Auth});
 }
 
@@ -369,8 +368,23 @@ sub raw_request {
 		$self->_dbgmsg("Spent ".tv_interval ($self->{_call_start})."s on $object.$op");
 	}
 
-	return $self->data_dec($res->content);
+	return $self->_process_response($res->content);
 }
+
+sub _process_response {
+	my ($self, $content) = @_;
+	my $data = $self->data_dec($content);
+
+	if (exists $data->{result}) {
+		return $data->{result};
+	}
+	elsif (defined $data->{error}) {
+		die Net::Zabbix::Exception->new($data->{error});
+	}
+	else {
+		die "Something happened, no idea what to do:\n".Dumper($data);
+	}
+};
 
 sub _dbgmsg {
 	my $self = shift;
