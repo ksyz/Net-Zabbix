@@ -10,6 +10,8 @@ use Carp;
 use Time::HiRes qw(gettimeofday tv_interval);
 use POSIX qw(strftime);
 
+use Net::Zabbix::Exception;
+
 # useful defaults
 use constant {
 	Z_AGENT_PORT => 10050,

@@ -33,14 +33,14 @@ my $hosts = $z->get("host", {
 	output => Net::Zabbix::OUTPUT_EXTEND,
 	selectInterfaces => Net::Zabbix::OUTPUT_EXTEND,
 	# filter => { status => 0 },
-	# limit => 100,
+	limit => 2,
 });
 
 my @interface_updates = ();
 my @host_updates = ();
 my @snmp_interfaces = ();
 
-for my $h (@{$hosts->{result}}) {
+for my $h (@{$hosts}) {
 	my $primary;
 	my $entry = { host => $h->{host}, name => $h->{name}, hostid => $h->{hostid}}; 
 	for my $i (@{$h->{interfaces}}) {
