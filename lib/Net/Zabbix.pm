@@ -9,7 +9,7 @@ use Scalar::Util qw(reftype refaddr);
 use Carp;
 use Time::HiRes qw(gettimeofday tv_interval);
 use POSIX qw(strftime);
-
+use Data::Dumper;
 use Net::Zabbix::Exception;
 
 # useful defaults
@@ -381,7 +381,7 @@ sub _process_response {
 		return $data->{result};
 	}
 	elsif (defined $data->{error}) {
-		die Net::Zabbix::Exception->new($data->{error});
+		die Net::Zabbix::Exception->new($data);
 	}
 	else {
 		die "Something happened, no idea what to do:\n".Dumper($data);
