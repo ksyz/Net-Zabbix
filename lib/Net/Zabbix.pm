@@ -303,11 +303,13 @@ sub data_enc {
 
 sub data_dec {
 	my ($self, $json) = @_;
-	
-	$self->_dbgmsg("RX: ".$json) 
+
+	my $data_obj = $self->{JSON}->decode($json);
+		
+	$self->_dbgmsg("RX: ".$self->{JSON}->encode($data_obj)) 
 		if $self->{Debug};
 
-	return $self->{JSON}->decode($json);
+	return $data_obj;
 }
 
 sub get {
