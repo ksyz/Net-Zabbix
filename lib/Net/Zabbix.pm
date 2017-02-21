@@ -252,7 +252,7 @@ sub auth {
 
 	if (not defined $self->{Auth}) {
 		$self->{Auth} = ''; # avoiding recursion
-		my $res = $self->raw_request('user', 'authenticate', {
+		my $res = $self->raw_request('user', 'login', {
 			user => $self->{User},
 			password => $self->{Password},
 		});
