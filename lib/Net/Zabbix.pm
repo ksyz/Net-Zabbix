@@ -146,7 +146,7 @@ use constant {
 };
 
 sub new {
-	my ($class, $url, $user, $password, $debug, $trace, $config_file, $verify_ssl) = @_;
+	my ($class, $url, $user, $password, $debug, $trace, $config_file, $verify_ssl, $proxy) = @_;
 
 	my $self = bless {
 		UserAgent => undef,
@@ -168,6 +168,9 @@ sub new {
 	$self->_json;
 	# init useragent
 	$self->ua;
+	if (defined $proxy){
+		$self->ua->proxy([qw/ http https /] => $proxy);
+	};
 	# authenticate
 	$self->auth;
 
