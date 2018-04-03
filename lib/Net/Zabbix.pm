@@ -10,6 +10,7 @@ use Carp;
 use Time::HiRes qw(gettimeofday tv_interval);
 use POSIX qw(strftime);
 use Data::Dumper;
+use Error;
 use Net::Zabbix::Exception;
 
 # useful defaults
@@ -363,8 +364,12 @@ sub raw_request {
 	}));
 
 	my $res = $self->ua->request($req);
-	unless ($res->is_success) {
-		die "Can't connect to Zabbix" . $res->status_line;
+	
+	if ($res->is_error) {
+		die Error->new(
+			-text => "Can't connect to Zabbix: " . $res->status_line,
+			-object => $res,
+		);
 	}
 
 	if ($self->{Trace}) {
